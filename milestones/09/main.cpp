@@ -78,24 +78,21 @@ int main(int argc, char *argv[]) {
         berendsen_thermostat(atoms, mass, goal_temp, timestep, relaxation_time, kB);
 
         // compute the forces on ghost atoms outside the boundaries
-        double force1 = 0.0, force2 = 0.0;
+        double local_force1 = 0.0, local_force2 = 0.0;
 
-        if (domain.rank() == 0) {
-            for (int j = domain.nb_local(); j < atoms.positions.cols(); ++j) {
-                if (atoms.positions(2, j) < 0.72124892)
-                    force1 += atoms.forces(2, j);
-            }
+        for (int j = domain.nb_local(); j < atoms.nb_atoms(); ++j) {
+            // Ghost atoms to the bottom of the whisker
+            if (atoms.positions(2, j) < 0.72124892)
+                local_force1 += atoms.forces(2, j);
+
+            // Ghost atoms to the top of the whisker
+            if (atoms.positions(2, j) > domain_size + total_scaled)
+                local_force2 += atoms.forces(2, j);
         }
 
-        if (domain.rank() == domain.size() - 1) {
-            for (int j = domain.nb_local(); j < atoms.positions.cols(); ++j) {
-                if (atoms.positions(2, j) > domain_size + total_scaled)
-                    force2 += atoms.forces(2, j);
-            }
-        }
-
-        double global_force1{MPI::allreduce(force1, MPI_SUM, MPI_COMM_WORLD)};
-        double global_force2{MPI::allreduce(force2, MPI_SUM, MPI_COMM_WORLD)};
+        // Sum over all processes
+        double global_force1{MPI::allreduce(local_force1, MPI_SUM, MPI_COMM_WORLD)};
+        double global_force2{MPI::allreduce(local_force2, MPI_SUM, MPI_COMM_WORLD)};
 
         domain.disable(atoms);
         if (domain.rank() == 0) {
