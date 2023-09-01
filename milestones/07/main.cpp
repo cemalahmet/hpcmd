@@ -13,6 +13,7 @@
 // IMPORTANT: need to call ./mackay/create_objects.sh script
 // before running this
 int main(int argc, char *argv[]) {
+    // Constants & settings
     constexpr double mass = 20405.736652;
     constexpr double cutoff = 5.0;
     constexpr double kB = 8.617333262e-5;
@@ -23,61 +24,61 @@ int main(int argc, char *argv[]) {
     double timestep = 1;
     long nb_steps = floor(total_time / timestep);
 
+    // Get data for energy vs. temperature on cluster_923
     std::ofstream traj("traj.xyz");
     std::ofstream out("out.dat");
 
-        auto [names, positions]{read_xyz("cluster_923.xyz")};
-        Atoms atoms{positions};
+    auto [names, positions]{read_xyz("cluster_923.xyz")};
+    Atoms atoms{positions};
 
-        NeighborList neighbor_list;
+    NeighborList neighbor_list;
 
-        double temp_avg = 0.0;
-        double total_energy_avg = 0.0;
-        for (int i = 0; i < nb_steps; i++) {
-            verlet_step1(atoms, mass, timestep);
+    double temp_avg = 0.0;
+    double total_energy_avg = 0.0;
+    for (int i = 0; i < nb_steps; i++) {
+        verlet_step1(atoms, mass, timestep);
 
-            neighbor_list.update(atoms, cutoff);
-            double ep = ducastelle(atoms, neighbor_list, cutoff);
+        neighbor_list.update(atoms, cutoff);
+        double ep = ducastelle(atoms, neighbor_list, cutoff);
 
-            verlet_step2(atoms, mass, timestep);
+        verlet_step2(atoms, mass, timestep);
 
-            // Measure for t_relax when another t_relax passed after
-            // heat injection
-            if (i % (2 * t_relax) >= t_relax) {
-                double ek = kinetic_energy(atoms, mass);
-                double temp = temperature(ek, atoms.nb_atoms(), kB);
+        // Measure for t_relax when another t_relax passed after heat injection
+        if (i % (2 * t_relax) >= t_relax) {
+            double ek = kinetic_energy(atoms, mass);
+            double temp = temperature(ek, atoms.nb_atoms(), kB);
 
-                temp_avg += temp;
-                total_energy_avg += ek + ep;
-            }
-
-            // Compute the data and inject heat every 2t_relax time)
-            if (i && i % (2 * t_relax) == 0) {
-                double ek = kinetic_energy(atoms, mass);
-
-                // compute average temp
-                temp_avg /= t_relax;
-                total_energy_avg /= t_relax;
-
-                // for the plot of energy vs. temperature
-                out << temp_avg << std::endl;
-                out << total_energy_avg << std::endl;
-
-                // add energy of delta Q (rescale velocities)
-                double lambda = sqrt((delta_q / ek) + 1);
-                atoms.velocities = atoms.velocities * lambda;
-
-                temp_avg = 0.0;
-                total_energy_avg = 0.0;
-            }
-
-            //  show trajectory
-            if (i % 10 == 0) {
-                write_xyz(traj, atoms);
-                if (i % 1000 == 0)
-                    std::cout << i / 1000 << std::endl;
-            }
+            temp_avg += temp;
+            total_energy_avg += ek + ep;
         }
+
+        // Compute the data and inject heat every 2t_relax time)
+        if (i && i % (2 * t_relax) == 0) {
+            double ek = kinetic_energy(atoms, mass);
+
+            // compute average temp
+            temp_avg /= t_relax;
+            total_energy_avg /= t_relax;
+
+            // for the plot of energy vs. temperature
+            out << temp_avg << std::endl;
+            out << total_energy_avg << std::endl;
+
+            // add energy of delta Q (rescale velocities)
+            double lambda = sqrt((delta_q / ek) + 1);
+            atoms.velocities = atoms.velocities * lambda;
+
+            temp_avg = 0.0;
+            total_energy_avg = 0.0;
+        }
+
+        //  show trajectory
+        if (i % 10 == 0) {
+            write_xyz(traj, atoms);
+            if (i % 1000 == 0)
+                std::cout << i / 1000 << std::endl;
+        }
+    }
 
     out.close();
     traj.close();
@@ -85,6 +86,8 @@ int main(int argc, char *argv[]) {
     // Now output the heat capacity latent heat for
     // different cluster sizes. I have not found a way to automatically find the
     // melting point. That's why I use the data from here and analyze it myself.
+    // Make sure to run this before:
+    // $ sh ../../mackay/create_objects.sh
     double delta_qs[13] = {0, 0, 1, 1, 5, 10, 20, 40, 60, 80, 110, 120, 150};
 
     for (int i = 3; i <= 12; i++) {

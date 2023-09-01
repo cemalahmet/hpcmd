@@ -3,6 +3,7 @@
 double lj_direct_summation(Atoms &atoms, double epsilon, double sigma) {
     double Ep_tot = 0.0;
 
+    // Set all forces to 0 initially
     atoms.forces.setZero();
 
     int n = atoms.nb_atoms();
@@ -34,6 +35,7 @@ double lj_direct_summation(Atoms &atoms, double epsilon, double sigma) {
     return Ep_tot;
 }
 
+// Computes the total kinetic energy of the system
 double kinetic_energy(const Atoms &atoms, double mass) {
     return mass * atoms.velocities.square().sum() / 2;
 }

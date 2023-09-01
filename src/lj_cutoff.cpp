@@ -1,11 +1,11 @@
 #include "headers/lj_cutoff.h"
 
+// IMPORTANT: need to update the neighbor list before running this code.
 double lj_cutoff(Atoms &atoms, NeighborList &neighbor_list, double epsilon, double sigma, double cutoff) {
     double Ep_tot = 0.0;
 
     atoms.forces.setZero();
 
-    // update the neighbor list
     for (auto[i, j]: neighbor_list) {
         if (i < j) {
             // Calculate r, the distance between two atoms

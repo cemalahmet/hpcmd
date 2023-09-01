@@ -31,7 +31,8 @@ int main(int argc, char *argv[]) {
 
     struct timeval start, end;
 
-    // the structures tested are 2*2*2, 2*2*3, 2*3*3, 3*3*3, 3*3*4, 3*4*4 etc.
+    // Test for performance:
+    // the structures tested are 2*2*2, 2*2*3, 2*3*3, 3*3*3, 3*3*4, ... , 6*7*7
     for (int N = 2; N <= 6; N++) {
         for (int M = 0; M < 3; M++) {
             int N1 = N;

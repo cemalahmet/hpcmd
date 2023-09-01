@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
         std::ofstream out2("out" + std::to_string(l + 1) + ".dat");
         Atoms atoms2{size_t(125)};
 
-        // Cubic lattice
+        // Generate Cubic lattice
         for (int x{0}, i{0}; x < 5; ++x) {
             for (int y{0}; y < 5; ++y) {
                 for (int z{0}; z < 5; ++z, ++i) {
@@ -51,6 +51,7 @@ int main(int argc, char *argv[]) {
 
             verlet_step2(atoms2, mass, timestep);
 
+            // additional thermostat implemented on top of the simulation code on milestone 4
             berendsen_thermostat(atoms2, mass, goal_temperature, timestep,relaxation_time, kB);
 
             if (l == 0) write_xyz(traj, atoms2);
@@ -65,6 +66,9 @@ int main(int argc, char *argv[]) {
     std::ofstream out("out.dat");
 
     struct timeval start, end;
+
+    // Test for performance:
+    // the structures tested are 2*2*2, 2*2*3, 2*3*3, 3*3*3, 3*3*4, ... , 6*7*7
     for (int N = 2; N <= 6; N++) {
         for (int M = 0; M < 3; M++) {
             int N1 = N;

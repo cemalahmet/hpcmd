@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
 
         write_xyz(traj, atoms);
 
+        // Output the timestep index, potential energy, and kinetic energy
         out << i << std::endl;
         out << Ep << std::endl;
         out << Ek << std::endl;
@@ -55,6 +56,7 @@ int main(int argc, char *argv[]) {
         double ts = ts_list[k];
         long nbs = floor(total_time / ts);
 
+        // Re-read the file
         auto [names2, positions2, velocities2]{read_xyz_with_velocities("lj54.xyz")};
         Atoms atoms2{positions2, velocities2};
 
@@ -66,8 +68,10 @@ int main(int argc, char *argv[]) {
             verlet_step2(atoms2, mass, ts);
             double Ek = kinetic_energy(atoms2, mass);
 
+            // output total energy for each timestep
             out2 << Ep + Ek << std::endl;
         }
+        // indicator for changing to the next timestep value
         out2 << "###" << std::endl;
     }
     out2.close();
