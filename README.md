@@ -22,7 +22,7 @@ make
 
 # To run executables with MPI (milestones 8 and 9):
 cd milestones/09
-mpirun -n 4 ./09
+mpirun -np 4 ./09
 
 # To run executables without MPI:
 cd milestones/07
