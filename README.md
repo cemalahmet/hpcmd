@@ -1,4 +1,4 @@
-## High Performance Computing: Molecular Dynamics in C++
+## Molecular Dynamics Simulations in C++
 
 To execute this project, follow the guide below:
 ```bash
